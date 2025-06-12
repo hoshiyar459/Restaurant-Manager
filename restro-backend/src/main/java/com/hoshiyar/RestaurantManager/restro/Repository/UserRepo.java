@@ -17,4 +17,5 @@ public interface UserRepo extends MongoRepository<User , ObjectId> {
     User findByMobileNumber(String mobileNumber);
      boolean existsByUsernameAndMobileNumber(String username, String mobileNumber);
      User findByRestaurantName(String restaurantName);
+     List<User> findByRestaurantNameNotNull();
 }

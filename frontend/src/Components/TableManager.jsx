@@ -1,4 +1,3 @@
-// TableManager.jsx
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { fetchAllTables, createTable } from '../api/axios';
@@ -18,9 +17,19 @@ export default function TableManager() {
     const loadTables = async () => {
       try {
         const res = await fetchAllTables();
-        setTables(res.data);
+        console.log("Fetched tables:", res.data);
+
+        // FIX: ensure we set an array
+        const tableData = Array.isArray(res.data)
+          ? res.data
+          : Array.isArray(res.data.tables)
+          ? res.data.tables
+          : [];
+
+        setTables(tableData);
       } catch (error) {
         console.error('Failed to fetch tables:', error);
+        setTables([]); // fallback to empty array to prevent map crash
       }
     };
     loadTables();
@@ -30,7 +39,7 @@ export default function TableManager() {
   const handleAddTable = async () => {
     try {
       const response = await createTable(newTable);
-      setTables([...tables, response.data]); // Update table list
+      setTables([...tables, response.data]);
       setNewTable({ name: '', status: 'Available', capacity: '' });
       setModalOpen(false);
       setValidationErrors({});
@@ -76,7 +85,7 @@ export default function TableManager() {
       <p className="text-gray-500 mb-4">Real-time table booking status</p>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
-        {tables.map((table) => (
+        {tables?.map?.((table) => (
           <motion.div
             key={table.id || table._id}
             className={`rounded-2xl shadow-md p-4 flex flex-col justify-between items-center ${

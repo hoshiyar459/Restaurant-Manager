@@ -65,14 +65,33 @@ public ResponseEntity<?> addMenu(
         @RequestParam("price") BigDecimal price,
         @RequestParam("category") String category,
         @RequestParam("status") String status,
-        @RequestParam("image") MultipartFile image) throws IOException {
+        @RequestParam("image") MultipartFile image) {
 
     try {
-        User restro = userRepo.findByRestaurantName(restaurantName);
-        if (restro == null) {
-            return new ResponseEntity<>("Restaurant not found", HttpStatus.NOT_FOUND);
+        // ✅ 1. Validate restaurant name
+        if (restaurantName == null || restaurantName.isBlank()) {
+            return ResponseEntity.badRequest().body("Restaurant name is missing");
         }
 
+        // ✅ 2. Find the restaurant by name
+        User restro = userRepo.findByRestaurantName(restaurantName);
+        if (restro == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurant not found");
+        }
+
+        // ✅ 3. Validate inputs
+        if (name == null || name.isBlank()) {
+            return ResponseEntity.badRequest().body("Menu name is required");
+        }
+
+        // ✅ 4. Check for duplicate menu item
+        boolean duplicate = restro.getMenuList().stream()
+                .anyMatch(item -> item.getName().equalsIgnoreCase(name));
+        if (duplicate) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Menu item already exists");
+        }
+
+        // ✅ 5. Create new Menu item
         Menu menu = new Menu();
         menu.setName(name);
         menu.setDescription(description);
@@ -80,18 +99,23 @@ public ResponseEntity<?> addMenu(
         menu.setCategory(category);
         menu.setStatus(status);
 
-        // Save menu and get reference
-        menu = menuService.SaveMenu(menu, image);
-
-        // Add menu to restaurant
+        // ✅ 6. Save the menu with image
+        menu = menuService.SaveMenu(menu, image); 
+        // ✅ 7. Add menu to user's menu list
         restro.getMenuList().add(menu);
         userRepo.save(restro);
 
         return ResponseEntity.ok(menu);
-    } catch (IllegalArgumentException e) {
-        return ResponseEntity.badRequest().body("Invalid input");
+
+    } catch (IOException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Failed to save image: " + e.getMessage());
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Unexpected error: " + e.getMessage());
     }
 }
+
 
 
     // Rest Api For Updating a Existing product in Database

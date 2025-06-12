@@ -17,9 +17,26 @@ export default function RestaurantOwnerLogin() {
     role: 'ADMIN'
   });
 
-  const handleChange = (e) => {
-    setUser({ ...user, [e.target.name]: e.target.value.trimStart() });
-  };
+const handleChange = (e) => {
+  const { name, value } = e.target;
+
+  // Allow only one space between words, and no leading/trailing spaces
+  const cleanedValue = value.replace(/\s{2,}/g, ''); // Remove extra spaces
+  const trimmedValue = cleanedValue.trim();
+
+  // Check if value has exactly one space between two non-empty strings
+  const isValid = /^[^\s]+(\s[^\s]+)*$/.test(trimmedValue);
+
+  if (isValid || trimmedValue === '') {
+    setUser((prevUser) => ({
+      ...prevUser,
+      [name]: trimmedValue,
+    }));
+  }
+};
+
+
+
 
   const sendOtp = async () => {
     if (!user.name.trim()) {
@@ -43,7 +60,7 @@ export default function RestaurantOwnerLogin() {
       });
 
       const otp = response.data.otp;
-      toast.success(`OTP sent 🚀 | Your OTP is ${otp}`); // For testing
+      toast.success(`OTP sent 🚀 | Your OTP is ${otp}`);
       setUser((prev) => ({ ...prev, otp: '' }));
       setStep(2);
     } catch (error) {

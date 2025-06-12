@@ -31,4 +31,8 @@ public class User {
      @DBRef
      private List<Menu> menuList = new ArrayList<>() ;
 
+     @DBRef
+      private List<Table> tables = new ArrayList<>() ;
+
+      
 }

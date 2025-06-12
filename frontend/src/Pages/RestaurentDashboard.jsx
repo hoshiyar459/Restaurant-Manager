@@ -14,7 +14,7 @@ export default function RestaurentDashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem('restaurantName');
-    navigate('/ownerLogin'); // Redirect to login
+    navigate('/'); // Redirect to login
   };
 
   const loadMenuItems = async () => {

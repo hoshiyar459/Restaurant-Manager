@@ -3,26 +3,30 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-// Dummy restaurant data (replace with API call if needed)
-const dummyRestaurants = [
-  { id: 'resto1', name: 'The Spice Lounge', tagline: 'Authentic Indian Delights' },
-  { id: 'resto2', name: 'Urban Bites', tagline: 'Modern Flavors & Comfort' },
-  { id: 'resto3', name: 'Green Garden', tagline: 'Fresh. Organic. Local.' },
-];
+import { fetchAllRestaurants } from '../api/axios'; // Make sure the path is correct
 
 export default function RestaurantSelection() {
   const navigate = useNavigate();
   const [restaurants, setRestaurants] = useState([]);
 
   useEffect(() => {
-    // Simulate fetch or get from backend/localStorage
-    setRestaurants(dummyRestaurants);
+    const loadRestaurants = async () => {
+      try {
+        const response = await fetchAllRestaurants();
+        setRestaurants(response.data); // Assumes response.data is an array of User objects with restaurantName
+      } catch (error) {
+        toast.error("Failed to load restaurants 😓");
+        console.error(error);
+      }
+    };
+
+    loadRestaurants();
   }, []);
 
-  const handleSelect = (restaurantId) => {
+  const handleSelect = (restaurant) => {
+    localStorage.setItem('restaurantName', restaurant.restaurantName); // Save for further usage
     toast.success("Restaurant selected 🚀");
-    navigate(`/UserDashBoard?restaurantId=${restaurantId}`);
+    navigate(`/UserDashBoard?restaurantId=${restaurant._id}`); // _id from MongoDB, adjust if different
   };
 
   return (
@@ -41,15 +45,15 @@ export default function RestaurantSelection() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl w-full">
         {restaurants.map((resto, idx) => (
           <motion.div
-            key={resto.id}
-            onClick={() => handleSelect(resto.id)}
+            key={resto._id}
+            onClick={() => handleSelect(resto)}
             className="cursor-pointer bg-white/20 backdrop-blur-lg border border-white/30 rounded-2xl p-6 shadow-lg hover:scale-105 hover:bg-white/30 transition-transform duration-300"
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 * idx }}
           >
-            <h3 className="text-xl font-bold text-white">{resto.name}</h3>
-            <p className="text-sm text-white/80 mt-1">{resto.tagline}</p>
+            <h3 className="text-xl font-bold text-white">{resto.restaurantName}</h3>
+            <p className="text-sm text-white/80 mt-1">{resto.phoneNumber}</p>
           </motion.div>
         ))}
       </div>
