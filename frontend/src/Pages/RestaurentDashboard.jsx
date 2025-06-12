@@ -1,4 +1,5 @@
-import { useState,useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import AddMenuItem from '../Components/AddMenuItem';
 import { MenuDisplay } from '../Components/MenuCard';
@@ -6,20 +7,33 @@ import { fetchAllMenuItems } from '../api/axios';
 import TableManager from '../Components/TableManager';
 
 export default function RestaurentDashboard() {
-  const [selectedTab, setSelectedTab] = useState('orders'); // default tab
-   const [menuItems, setMenuItems] = useState([]);
+  const navigate = useNavigate();
+  const [selectedTab, setSelectedTab] = useState('orders');
+  const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const handleLogout = () => {
+    localStorage.removeItem('restaurantName');
+    navigate('/ownerLogin'); // Redirect to login
+  };
+
   const loadMenuItems = async () => {
+    let restaurantName = localStorage.getItem('restaurantName');
+    if (!restaurantName) return;
+
+    // Replace multiple spaces with dashes
+    const formattedName = restaurantName.trim().replace(/\s+/g, '-');
+
     try {
-      const response = await fetchAllMenuItems();
+      const response = await fetchAllMenuItems(formattedName);
       if (response.status === 200) {
         setMenuItems(response.data);
       } else {
         setMenuItems([]);
       }
     } catch (error) {
-      console.error("Error fetching menu items:", error);
+      console.error('Error fetching menu items:', error);
+      setMenuItems([]);
     } finally {
       setLoading(false);
     }
@@ -34,12 +48,19 @@ export default function RestaurentDashboard() {
       {/* Header */}
       <div className="flex justify-between items-center mb-10">
         <div>
+          <motion.button
+            className="bg-red-500 text-white font-semibold py-2 px-4 rounded-xl shadow-md hover:scale-105 transition"
+            whileHover={{ scale: 1.05 }}
+            onClick={handleLogout}
+          >
+            🔓 Logout
+          </motion.button>
           <motion.h1
-            className="text-4xl font-bold text-gray-900"
+            className="text-4xl font-bold text-gray-900 mt-2"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            Restaurant dashcam
+            Restaurant Dashboard
           </motion.h1>
           <p className="text-gray-500 mt-1">Manage your restaurant operations</p>
         </div>
@@ -73,47 +94,34 @@ export default function RestaurentDashboard() {
 
         <motion.div className="bg-gradient-to-br from-orange-300 to-orange-400 text-white p-5 rounded-xl shadow-lg" whileHover={{ scale: 1.03 }}>
           <p className="text-sm">Menu Items</p>
-          <h2 className="text-3xl font-bold">45</h2>
+          <h2 className="text-3xl font-bold">{menuItems.length}</h2>
           <p className="text-xs">Available dishes</p>
         </motion.div>
       </div>
 
       {/* Tabs */}
       <div className="flex justify-around bg-white rounded-xl shadow-sm p-3 text-sm font-medium text-gray-600 mb-6">
-        <span
-          className={`cursor-pointer hover:text-orange-500 ${selectedTab === 'orders' && 'text-orange-500 font-bold'}`}
-          onClick={() => setSelectedTab('orders')}
-        >
-          📦 Orders
-        </span>
-        <span
-          className={`cursor-pointer hover:text-orange-500 ${selectedTab === 'menu' && 'text-orange-500 font-bold'}`}
-          onClick={() => setSelectedTab('menu')}
-        >
-          🍽️ Menu
-        </span>
-        <span
-          className={`cursor-pointer hover:text-orange-500 ${selectedTab === 'tables' && 'text-orange-500 font-bold'}`}
-          onClick={() => setSelectedTab('tables')}
-        >
-          🪑 Tables
-        </span>
-        <span
-          className={`cursor-pointer hover:text-orange-500 ${selectedTab === 'analytics' && 'text-orange-500 font-bold'}`}
-          onClick={() => setSelectedTab('analytics')}
-        >
-          📊 Analytics
-        </span>
+        {['orders', 'menu', 'tables', 'analytics'].map((tab) => (
+          <span
+            key={tab}
+            className={`cursor-pointer hover:text-orange-500 ${selectedTab === tab && 'text-orange-500 font-bold'}`}
+            onClick={() => setSelectedTab(tab)}
+          >
+            {tab === 'orders' && '📦 Orders'}
+            {tab === 'menu' && '🍽️ Menu'}
+            {tab === 'tables' && '🪑 Tables'}
+            {tab === 'analytics' && '📊 Analytics'}
+          </span>
+        ))}
       </div>
 
-      {/* Conditional Sections */}
+      {/* Conditional Content */}
       {selectedTab === 'orders' && (
         <div className="bg-white p-6 rounded-xl shadow">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">Recent Orders</h3>
           <p className="text-sm text-gray-400 mb-6">Track and manage customer orders in real-time</p>
-
+          {/* Sample Orders */}
           <div className="space-y-4">
-            {/* Order Item #1 */}
             <div className="flex items-center justify-between p-4 bg-orange-50 rounded-xl shadow-sm">
               <div className="flex items-center space-x-4">
                 <div className="bg-orange-500 text-white font-bold px-3 py-1 rounded-full">#1</div>
@@ -127,8 +135,6 @@ export default function RestaurentDashboard() {
                 <span className="font-bold text-gray-800">$30</span>
               </div>
             </div>
-
-            {/* Order Item #2 */}
             <div className="flex items-center justify-between p-4 bg-orange-50 rounded-xl shadow-sm">
               <div className="flex items-center space-x-4">
                 <div className="bg-orange-500 text-white font-bold px-3 py-1 rounded-full">#2</div>
@@ -148,23 +154,18 @@ export default function RestaurentDashboard() {
 
       {selectedTab === 'menu' && (
         <div className="space-y-6">
-              <AddMenuItem onItemAdded={loadMenuItems} />
-      <MenuDisplay items={menuItems} loading={loading} />
+          <AddMenuItem onItemAdded={loadMenuItems} />
+          <MenuDisplay items={menuItems} loading={loading} />
         </div>
       )}
 
-      {selectedTab === 'tables' && (
-        <TableManager></TableManager>
-      )}
+      {selectedTab === 'tables' && <TableManager />}
 
       {selectedTab === 'analytics' && (
         <div className="bg-white p-6 rounded-xl shadow">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">Analytics Dashboard</h3>
           <p className="text-sm text-gray-400">Visualize your restaurant’s performance over time.</p>
-          {/* Replace with analytics chart/components */}
-          <div className="mt-4 text-gray-700">
-            📈 Charts coming soon...
-          </div>
+          <div className="mt-4 text-gray-700">📈 Charts coming soon...</div>
         </div>
       )}
     </div>

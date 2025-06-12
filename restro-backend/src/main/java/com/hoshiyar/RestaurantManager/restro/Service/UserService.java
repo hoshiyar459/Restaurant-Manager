@@ -1,6 +1,7 @@
 package com.hoshiyar.RestaurantManager.restro.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +23,17 @@ public class UserService {
     }
 
     public void createUser(User user) {
-         user.setRole("USER");
+         if(user.getRole() == null || user.getRole().isEmpty()) {
+            user.setRole("USER"); 
+         }
          user.setCreatedAt(LocalDateTime.now());
         userRepository.save(user);
+         
+    }
 
+    public void createOwner(User user) {
+         user.setCreatedAt(LocalDateTime.now());
+        userRepository.save(user);
     }
 
     public void saveOtp(String mobileNumber, String otp) {
@@ -38,5 +46,9 @@ public class UserService {
 
     public void removeOtp(String mobileNumber) {
         otpStore.remove(mobileNumber);
+    }
+
+    public List<User> getAllUsers() {
+         return userRepository.findAll();
     }
 }

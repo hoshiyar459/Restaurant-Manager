@@ -47,7 +47,7 @@ export default function RoleSelector() {
             <li>• Real-time Table Status</li>
             <li>• Analytics & Reports</li>
           </ul>
-          <button onClick={()=> navigate("/userLogin")} className="w-full mt-4 bg-white text-orange-500 font-bold py-2 rounded-xl hover:bg-orange-100">Continue as Owner</button>
+          <button onClick={()=> navigate("/ownerLogin")} className="w-full mt-4 bg-white text-orange-500 font-bold py-2 rounded-xl hover:bg-orange-100">Continue as Owner</button>
         </motion.div>
 
         {/* Customer Card */}

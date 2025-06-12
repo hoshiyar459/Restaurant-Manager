@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaUser, FaPhoneAlt, FaKey } from 'react-icons/fa';
+import { FaUser, FaPhoneAlt, FaKey, FaStore } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
-import { sendUserOtp, verifyUserOtp } from '../api/axios'; // ✅ import backend functions
+import { sendUserOtp, verifyUserOtp } from '../api/axios'; // Adjust based on your backend
 
-export default function UserLogin() {
+export default function RestaurantOwnerLogin() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [user, setUser] = useState({ name: '', phone: '', otp: '', role: 'USER' });
+  const [user, setUser] = useState({
+    name: '',
+    phone: '',
+    otp: '',
+    restaurant: '',
+    role: 'ADMIN'
+  });
 
   const handleChange = (e) => {
     setUser({ ...user, [e.target.name]: e.target.value.trimStart() });
@@ -18,6 +24,10 @@ export default function UserLogin() {
   const sendOtp = async () => {
     if (!user.name.trim()) {
       toast.warning("Name can't be empty.");
+      return;
+    }
+    if (!user.restaurant.trim()) {
+      toast.warning("Restaurant name is required.");
       return;
     }
     if (!/^\d{10}$/.test(user.phone)) {
@@ -29,10 +39,11 @@ export default function UserLogin() {
       const response = await sendUserOtp({
         username: user.name,
         mobileNumber: user.phone,
+        restaurantName: user.restaurant,
       });
 
       const otp = response.data.otp;
-      toast.success(`OTP sent 🚀 | Your OTP is ${otp}`); // still showing for testing
+      toast.success(`OTP sent 🚀 | Your OTP is ${otp}`); // For testing
       setUser((prev) => ({ ...prev, otp: '' }));
       setStep(2);
     } catch (error) {
@@ -41,30 +52,27 @@ export default function UserLogin() {
   };
 
   const verifyOtp = async () => {
-  if (user.otp.length !== 6) {
-    toast.warning('Enter a valid 6-digit OTP');
-    return;
-  }
+    if (user.otp.length !== 6) {
+      toast.warning('Enter a valid 6-digit OTP');
+      return;
+    }
 
-  try {
-    const response = await verifyUserOtp({
-      username: user.name,
-      mobileNumber: user.phone,
-      otp: user.otp,
-    });
+    try {
+      const response = await verifyUserOtp({
+        username: user.name,
+        mobileNumber: user.phone,
+        otp: user.otp,
+        role: user.role,
+        restaurantName: user.restaurant,
+      });
 
-    toast.success(response.data); // ✅ OTP verified
-
-    // ✅ Save login info to localStorage
-    localStorage.setItem('restaurantUser', JSON.stringify(user));
-
-    // ✅ Redirect to dashboard
-navigate('/select-restaurant');
-
-  } catch (error) {
-    toast.error('Invalid OTP or verification failed.');
-  }
-};
+      toast.success(response.data);
+      localStorage.setItem('restaurantName', user.restaurant);
+      navigate('/restaurentDashbord');
+    } catch (error) {
+      toast.error('Invalid OTP or verification failed.');
+    }
+  };
 
   const goBack = () => {
     setStep(1);
@@ -80,7 +88,7 @@ navigate('/select-restaurant');
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
       >
-        🍽️ Welcome to RestaurantPro
+        🍽️ Welcome Customer
       </motion.h1>
 
       <motion.p
@@ -89,7 +97,7 @@ navigate('/select-restaurant');
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.6 }}
       >
-        Dive in and manage your restaurant like a pro. Let's get started!
+        Login to explore our delicious menu and book your table!
       </motion.p>
 
       <motion.div
@@ -105,6 +113,13 @@ navigate('/select-restaurant');
               name="name"
               placeholder="Your Name"
               value={user.name}
+              onChange={handleChange}
+            />
+            <InputField
+              icon={<FaStore />}
+              name="restaurant"
+              placeholder="Restaurant Name"
+              value={user.restaurant}
               onChange={handleChange}
             />
             <InputField
@@ -145,12 +160,12 @@ navigate('/select-restaurant');
         )}
       </motion.div>
 
-      <p className="mt-8 text-sm opacity-75">Made with 💖 for foodpreneurs</p>
+      <p className="mt-8 text-sm opacity-75">Built with 💖 for foodies everywhere</p>
     </div>
   );
 }
 
-// 🔥 Input Field with icon
+// InputField with icon
 const InputField = ({ icon, ...props }) => (
   <div className="relative mb-4">
     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-orange-300 text-sm">
@@ -163,19 +178,16 @@ const InputField = ({ icon, ...props }) => (
   </div>
 );
 
-// 🔥 Reusable Action Button
+// Reusable Button
 const ActionButton = ({ onClick, text, color }) => {
-  const base = "w-full text-white font-semibold py-2 rounded-xl transition transform duration-200 hover:scale-105";
+  const base =
+    'w-full text-white font-semibold py-2 rounded-xl transition transform duration-200 hover:scale-105';
   const colors = {
-    orange: "bg-orange-500 hover:bg-orange-600",
-    gray: "bg-gray-300 text-orange-700 hover:bg-gray-400",
+    orange: 'bg-orange-500 hover:bg-orange-600',
+    gray: 'bg-gray-300 text-orange-700 hover:bg-gray-400',
   };
   return (
-    <motion.button
-      whileTap={{ scale: 0.95 }}
-      onClick={onClick}
-      className={`${base} ${colors[color]}`}
-    >
+    <motion.button whileTap={{ scale: 0.95 }} onClick={onClick} className={`${base} ${colors[color]}`}>
       {text}
     </motion.button>
   );

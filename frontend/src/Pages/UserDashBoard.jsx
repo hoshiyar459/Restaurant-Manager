@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { fetchAllMenuItems, fetchAllTables } from '../api/axios';
 import Cart from './Cart';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 export default function UserDashBoard() {
   const [activeTab, setActiveTab] = useState('menu');
   const [menuItems, setMenuItems] = useState([]);
   const [tables, setTables] = useState([]);
   const [cart, setCart] = useState([]);
+   const navigate = useNavigate();
 
   useEffect(() => {
     fetchAllMenuItems()
@@ -50,6 +53,21 @@ useEffect(() => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 p-6 md:p-10">
       <div className="max-w-screen-xl mx-auto">
+
+        <div className="flex justify-end mb-4">
+  <button
+    onClick={() => {
+      localStorage.clear();
+      // add a toast Notification
+      toast.success('Logged out successfully! Redirecting to login page...');
+     
+      navigate('/userLogin'); // ✅ Redirect to login
+    }}
+    className="bg-orange-500 text-white px-4 py-2 rounded-full shadow hover:bg-orange-600 transition-all"
+  >
+    🚪 Logout
+  </button>
+</div>
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}

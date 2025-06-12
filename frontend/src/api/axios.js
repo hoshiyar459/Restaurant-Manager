@@ -17,16 +17,36 @@ axiosInstance.interceptors.response.use(
 
 // ✅ Menu APIs
 export const fetchAllMenuItems = async () => {
-  return axiosInstance.get('/admin/menu/all/products');
+  const restaurantName = localStorage.getItem('restaurantName') || '';
+
+  // Replace multiple spaces with single dash and encode URI
+  const formattedName = encodeURIComponent(
+    restaurantName.trim().replace(/\s+/g, '-')
+  );
+
+  return axiosInstance.get(`/admin/menu/all/${formattedName}/products`);
 };
 
+
 export const uploadMenuItem = async (formData) => {
-  return axiosInstance.post('/admin/menu/upload/product', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  const restaurantName = localStorage.getItem('restaurantName') || '';
+
+  // Format: replace multiple spaces with a dash and encode for URL
+  const formattedName = encodeURIComponent(
+    restaurantName.trim().replace(/\s+/g, '-')
+  );
+
+  return axiosInstance.post(
+    `/admin/menu/upload/product/${formattedName}`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
 };
+
 
 // ✅ Table APIs
 export const fetchAllTables = async () => {
