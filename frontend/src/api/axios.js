@@ -71,4 +71,13 @@ export const fetchAllRestaurants = async () => {
   return axiosInstance.get('/restro/api/all'); // This matches your Spring Boot controller path
 };
 
+
+export const addToCart = async (userId, menuId) => {
+  return axiosInstance.post(`/cart/api/create/${userId}/${menuId}`);
+};
+
+export const fetchUserCart = async (userId) => {
+  return axiosInstance.get(`cart/api/get/${userId}/cart`);
+};
+
 export default axiosInstance;

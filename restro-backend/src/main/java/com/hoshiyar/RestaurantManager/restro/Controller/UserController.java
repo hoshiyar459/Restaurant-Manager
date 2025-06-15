@@ -65,12 +65,7 @@ public ResponseEntity<?> verifyOtp(@RequestBody User user) {
 
         userService.removeOtp(user.getMobileNumber());
 
-        return ResponseEntity.ok(Map.of(
-                "message", exists ? "Existing user logged in" : "New user registered",
-                "userId", savedUser.getId(),  // 👈 send the ID back
-                "username", savedUser.getUsername(),
-                "mobileNumber", savedUser.getMobileNumber()
-        ));
+        return ResponseEntity.ok(savedUser);
     } else {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid OTP");
     }

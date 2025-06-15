@@ -40,7 +40,7 @@ export default function UserLogin() {
     }
   };
 
-  const verifyOtp = async () => {
+const verifyOtp = async () => {
   if (user.otp.length !== 6) {
     toast.warning('Enter a valid 6-digit OTP');
     return;
@@ -53,18 +53,20 @@ export default function UserLogin() {
       otp: user.otp,
     });
 
-    toast.success(response.data); // ✅ OTP verified
+    // ✅ Show a success message (extract string safely)
+    toast.success('OTP verified successfully');
 
-    // ✅ Save login info to localStorage
-    localStorage.setItem('restaurantUser', JSON.stringify(user));
+    // ✅ Store userId and user info
+    localStorage.setItem('userId', response.data.id);
+    localStorage.setItem('restaurantUser', JSON.stringify(response.data));
 
-    // ✅ Redirect to dashboard
-navigate('/select-restaurant');
-
+    // ✅ Redirect
+    navigate('/select-restaurant');
   } catch (error) {
     toast.error('Invalid OTP or verification failed.');
   }
 };
+
 
   const goBack = () => {
     setStep(1);

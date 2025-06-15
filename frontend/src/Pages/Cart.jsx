@@ -1,22 +1,43 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaPlus, FaTrash, FaShoppingCart, FaReceipt } from 'react-icons/fa';
+import { addToCart, fetchUserCart } from '../api/axios';
 
 export default function CartPage() {
-   
-    
   const [cart, setCart] = useState([]);
+  const userId = localStorage.getItem('userId'); // keep just userId for now
 
+  // ✅ Fetch cart from backend on page load
   useEffect(() => {
-    const storedCart = localStorage.getItem('userCart');
-    if (storedCart) {
-      setCart(JSON.parse(storedCart));
-    }
-  }, []);
+    const loadCartFromBackend = async () => {
+      if (!userId) {
+        console.warn("User ID not found. Please login first.");
+        return;
+      }
 
-  useEffect(() => {
-    localStorage.setItem('userCart', JSON.stringify(cart));
-  }, [cart]);
+      try {
+        const response = await fetchUserCart(userId);
+        const backendCart = response.data;
+
+        // Map backend cart to expected frontend structure
+        const mappedCart = backendCart.map((item) => ({
+          id: item.id, // cart item ID
+          menuId: item.menu.id,
+          title: item.menu.name,
+          description: item.menu.description,
+          imageUrl: item.menu.imageUrl,
+          price: item.menu.price,
+          quantity: item.quantity,
+        }));
+
+        setCart(mappedCart);
+      } catch (error) {
+        console.error("Failed to fetch cart:", error);
+      }
+    };
+
+    loadCartFromBackend();
+  }, [userId]);
 
   const updateQuantity = (id, quantity) => {
     const updated = cart.map((item) =>
@@ -32,27 +53,28 @@ export default function CartPage() {
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const addFakeProduct = () => {
-    const newItem = {
-      id: Date.now(),
-      title: `Delicious Dish #${cart.length + 1}`,
-      description: "A delightful taste of spices and herbs made fresh for you!",
-      image: "https://source.unsplash.com/featured/?food,dish",
-      price: Math.floor(Math.random() * 400 + 100),
-      quantity: 1,
-    };
-    setCart([...cart, newItem]);
-  };
+  const makeOrder = async () => {
+    if (!userId) {
+      alert("❌ User not logged in.");
+      return;
+    }
 
-  const increaseCapacity = () => {
-    alert("🚀 Table capacity increased! (Pretend backend call)");
-  };
+    if (cart.length === 0) {
+      alert("🛒 Cart is empty!");
+      return;
+    }
 
-  const makeOrder = () => {
-    if (cart.length === 0) return alert("🛒 Cart is empty!");
-    alert("✅ Order Placed Successfully!");
-    setCart([]);
-    localStorage.removeItem("userCart");
+    try {
+      for (const item of cart) {
+        await addToCart(userId, item.menuId); // if backend supports quantity, send that too
+      }
+
+      alert("✅ Order Placed Successfully!");
+      setCart([]);
+    } catch (error) {
+      console.error("Error placing order:", error);
+      alert("🔥 Failed to place order. Try again!");
+    }
   };
 
   return (
@@ -66,23 +88,6 @@ export default function CartPage() {
           <FaShoppingCart className="inline mr-2" />
           Your Mind-Blowing Cart
         </motion.h2>
-
-        <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
-          <button
-            onClick={addFakeProduct}
-            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full font-bold shadow transition-all"
-          >
-            <FaPlus className="inline mr-2" />
-            Add Random Product
-          </button>
-
-          <button
-            onClick={increaseCapacity}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full font-bold shadow transition-all"
-          >
-            🚀 Increase Table Capacity
-          </button>
-        </div>
 
         {cart.length === 0 ? (
           <motion.p
@@ -101,9 +106,7 @@ export default function CartPage() {
               variants={{
                 hidden: {},
                 visible: {
-                  transition: {
-                    staggerChildren: 0.1,
-                  },
+                  transition: { staggerChildren: 0.1 },
                 },
               }}
             >

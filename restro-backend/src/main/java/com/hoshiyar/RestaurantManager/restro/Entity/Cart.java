@@ -2,7 +2,9 @@ package com.hoshiyar.RestaurantManager.restro.Entity;
 
 import java.time.LocalDateTime;
 
+
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.Data;
@@ -16,5 +18,9 @@ public class Cart {
     private String MenuId ; 
     private int quantity = 1 ; 
     private String UserId ; 
-    private LocalDateTime CreateDate ;  
+    private LocalDateTime CreateDate ; 
+    
+        @Transient
+    private Menu menu;
+
 }

@@ -55,13 +55,13 @@ public class MenuService {
         return menuRepo.existsByName(name);
     }
 
-    public Menu findById(String id) {
-        return  menuRepo.findById(id).orElse(null);
-    }
+ 
     // method to get All the products from the database
     public List<Menu> getAllMenu() {
         return menuRepo.findAll();
     }
+
+
 
     // Method to save the menu item and its image
     @Transactional
@@ -152,6 +152,10 @@ public class MenuService {
         } catch (IOException e) {
             System.err.println("❌ Failed to delete image: " + e.getMessage());
         }
+    }
+
+    public Menu findById(String menuId) {
+           return menuRepo.findById(menuId).orElse(null);
     }
 
 }

@@ -1,6 +1,7 @@
 package com.hoshiyar.RestaurantManager.restro.Controller;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,8 +12,11 @@ import com.hoshiyar.RestaurantManager.restro.Entity.Cart;
 import com.hoshiyar.RestaurantManager.restro.Entity.Menu;
 import com.hoshiyar.RestaurantManager.restro.Entity.User;
 import com.hoshiyar.RestaurantManager.restro.Repository.CartRepo;
-import com.hoshiyar.RestaurantManager.restro.Repository.UserRepo;
+import com.hoshiyar.RestaurantManager.restro.Repository.MenuRepo;
 import com.hoshiyar.RestaurantManager.restro.Service.MenuService;
+import com.hoshiyar.RestaurantManager.restro.Service.UserService;
+
+
 
 @RestController
 @RequestMapping("/cart/api")
@@ -22,48 +26,66 @@ public class CartController {
     private CartRepo cartRepo;
 
     @Autowired
-    private UserRepo userRepo;
-
-    
+   private UserService userService ; 
 
     @Autowired
-    private MenuService menuService;
+    private MenuRepo menuRepo;
 
-    @PostMapping("/create/{userId}/{menuId}")
-    public ResponseEntity<?> createCartItem(@PathVariable String userId, @PathVariable String menuId) {
-        try {
-            // Find user
-            User user = userRepo.findById(userId).orElse(null);
-            if (user == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("❌ User not found");
-            }
+    @Autowired
+    private MenuService menuService ; 
 
-            // Find menu
-            Menu menu = menuService.findById(menuId);
-            if (menu == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("❌ Menu item not found");
-            }
 
-            // Create cart item
-            Cart cart = new Cart();
-            cart.setUserId(user.getId());
-            cart.setMenuId(menu.getId());
-            cart.setCreateDate(LocalDateTime.now());
-            cart.setQuantity(1); // Default quantity
-
-             user.getCart().add(cart);
-              
-              userRepo.save(user);
-            
-
-            // Save
-            Cart savedCart = cartRepo.save(cart);
-            return new ResponseEntity<>(savedCart, HttpStatus.CREATED);
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("🔥 Error occurred: " + e.getMessage());
+@PostMapping("/create/{userId}/{menuId}")
+public ResponseEntity<?> addToCart(@PathVariable String userId, @PathVariable String menuId) {
+    try {
+        // Check if menu exists
+        if (!menuRepo.existsById(menuId)) {
+            throw new IllegalArgumentException("Menu not found with ID: " + menuId);
         }
+        // Create Cart entry
+        Cart cart = new Cart();
+        cart.setUserId(userId);
+        cart.setMenuId(menuId);
+        cart.setCreateDate(LocalDateTime.now());
+
+        // Save cart entry separately
+        Cart savedCart = cartRepo.save(cart);
+
+         userService.UpdateUserCart(userId, savedCart);
+        return ResponseEntity.ok(savedCart);
+
+    } catch (IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    } catch (Exception ex) {
+        ex.printStackTrace(); // Log for debugging
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while adding to cart.");
     }
+}
+ 
+  @GetMapping("get/{userId}/cart")
+public ResponseEntity<List<Cart>> getUserCartWithMenu(@PathVariable String userId) {
+    try {
+        User user = userService.findByUserId(userId).orElse(null);
+        if (user == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        List<Cart> cartList = user.getCart();
+
+        for (Cart cart : cartList) {
+            Menu menu = menuService.findById(cart.getMenuId());
+            if (menu != null) {
+                cart.setMenu(menu);
+            }
+        }
+
+        return ResponseEntity.ok(cartList);
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    }
+}
+    
+
 }
  

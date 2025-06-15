@@ -1,12 +1,17 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 function UserDashHeader( {menuItemsLen , tables}) {
      const [activeTab, setActiveTab] = useState('menu');
        const [cart, setCart] = useState([]);
+       const navigate = useNavigate();
+       
   return (
     <>
             <div className="flex justify-end mb-4">
+               
           <button
             onClick={() => {
               localStorage.clear();

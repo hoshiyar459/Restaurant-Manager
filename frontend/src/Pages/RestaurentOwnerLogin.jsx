@@ -34,10 +34,6 @@ const handleChange = (e) => {
     }));
   }
 };
-
-
-
-
   const sendOtp = async () => {
     if (!user.name.trim()) {
       toast.warning("Name can't be empty.");
@@ -86,7 +82,7 @@ const handleChange = (e) => {
       toast.success(response.data);
       localStorage.setItem('restaurantName', user.restaurant);
       navigate('/restaurentDashbord');
-    } catch (error) {
+    } catch (error) { 
       toast.error('Invalid OTP or verification failed.');
     }
   };

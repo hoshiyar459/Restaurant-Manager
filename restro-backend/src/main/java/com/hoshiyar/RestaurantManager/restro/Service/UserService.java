@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.hoshiyar.RestaurantManager.restro.Entity.Cart;
 import com.hoshiyar.RestaurantManager.restro.Entity.User;
 import com.hoshiyar.RestaurantManager.restro.Repository.UserRepo;
 
@@ -35,8 +36,21 @@ public class UserService {
        return  userRepository.save(user);
     }
 
+     public void SaveUser(User user){
+          userRepository.save(user);
+     }
+
      public Optional<User> findByUserId(String id){
           return userRepository.findById(id); 
+     }
+
+     public void UpdateUserCart(String Id, Cart cart) throws Exception{
+         User user =  findByUserId(Id).orElse(null);
+          if(user == null){
+             throw new Exception("User Not Found");
+          } 
+          user.getCart().add(cart); 
+          SaveUser(user);
      }
 
     public void createOwner(User user) {
