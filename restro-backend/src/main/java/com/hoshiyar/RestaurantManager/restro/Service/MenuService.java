@@ -9,7 +9,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
 
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -48,13 +47,16 @@ public class MenuService {
             System.out.println("📁 Upload directory already exists: " + path.toAbsolutePath());
         }
     }
-
+  
+     public Menu menuByName(String name){
+          return menuRepo.findByName(name);
+     }
     public boolean isMenuExists(String name) {
         return menuRepo.existsByName(name);
     }
 
-    public boolean findById(ObjectId id) {
-        return menuRepo.existsById(id);
+    public Menu findById(String id) {
+        return  menuRepo.findById(id).orElse(null);
     }
     // method to get All the products from the database
     public List<Menu> getAllMenu() {
@@ -74,7 +76,7 @@ public class MenuService {
 
     // method to update the menu item or update the existing menu item
     @Transactional
-    public Menu updateMenu(ObjectId id, Menu updatedMenu, MultipartFile newImage) throws IOException {
+    public Menu updateMenu(String id, Menu updatedMenu, MultipartFile newImage) throws IOException {
         Menu existingMenu = menuRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Menu with ID " + id + " not found."));
 
@@ -108,7 +110,7 @@ public class MenuService {
 
     // Method to delete the menu item by ID
     @Transactional
-    public void deleteMenu(ObjectId id) {
+    public void deleteMenu(String id) {
         Menu menu = menuRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Menu with ID " + id + " not found."));
         deleteImageFromFileSystem(menu.getImageUrl());

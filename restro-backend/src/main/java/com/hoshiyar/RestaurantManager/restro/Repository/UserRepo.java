@@ -1,6 +1,6 @@
 package com.hoshiyar.RestaurantManager.restro.Repository;
 
-import org.bson.types.ObjectId;
+
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
@@ -9,7 +9,7 @@ import java.util.List;
 
 
 @Repository
-public interface UserRepo extends MongoRepository<User , ObjectId> {
+public interface UserRepo extends MongoRepository<User , String> {
     
     User findByUsername(String username);
     boolean existsByUsername(String username);
@@ -18,4 +18,5 @@ public interface UserRepo extends MongoRepository<User , ObjectId> {
      boolean existsByUsernameAndMobileNumber(String username, String mobileNumber);
      User findByRestaurantName(String restaurantName);
      List<User> findByRestaurantNameNotNull();
+      User findByUsernameAndMobileNumber(String username, String mobileNumber);
 }

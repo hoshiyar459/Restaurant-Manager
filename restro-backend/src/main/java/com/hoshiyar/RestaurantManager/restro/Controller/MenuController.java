@@ -121,7 +121,7 @@ public ResponseEntity<?> addMenu(
     // Rest Api For Updating a Existing product in Database
   @PutMapping("/update/product/{id}")
 public ResponseEntity<Menu> updateMenu(
-        @PathVariable ObjectId id,
+        @PathVariable String id,
         @ModelAttribute Menu menu,
         @RequestParam("image") MultipartFile image) {
     try {
@@ -136,29 +136,29 @@ public ResponseEntity<Menu> updateMenu(
 
 
     // Rest Api For Deleting a product from Database
-@Transactional
-@DeleteMapping("/delete/product/{id}")
-public ResponseEntity<String> deleteMenu(@PathVariable ObjectId id) {
-    try {
-        boolean exists = menuService.findById(id);
-        if (!exists) {
-            return new ResponseEntity<>("Product Id not found", HttpStatus.NOT_FOUND);
-        }
+// @Transactional
+// @DeleteMapping("/delete/product/{id}")
+// public ResponseEntity<String> deleteMenu(@PathVariable String id) {
+//     try {
+//        Menu menu =  menuService.findById(id);
+//         if (menu == null ) {
+//             return new ResponseEntity<>("Product Id not found", HttpStatus.NOT_FOUND);
+//         }
 
-        menuService.deleteMenu(id);
+//         menuService.deleteMenu(id);
 
-        // Also remove it from all users’ menu lists (optional cleanup)
-        List<User> users = userRepo.findAll();
-        for (User user : users) {
-            user.getMenuList().removeIf(menu -> menu.getId().equals(id));
-            userRepo.save(user);
-        }
+//         // Also remove it from all users’ menu lists (optional cleanup)
+//         List<User> users = userRepo.findAll();
+//         for (User user : users) {
+//             user.getMenuList().removeIf(menu -> menu.getId().equals(id));
+//             userRepo.save(user);
+//         }
 
-        return new ResponseEntity<>("Product deleted successfully", HttpStatus.NO_CONTENT);
-    } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Error deleting product: " + e.getMessage());
-    }
-}
+//         return new ResponseEntity<>("Product deleted successfully", HttpStatus.NO_CONTENT);
+//     } catch (Exception e) {
+//         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                 .body("Error deleting product: " + e.getMessage());
+//     }
+// }
 
 }

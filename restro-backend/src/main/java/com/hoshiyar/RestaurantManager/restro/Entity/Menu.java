@@ -21,11 +21,8 @@ import lombok.NoArgsConstructor;
 public class Menu {
 
  @Id
-private ObjectId id  ;
-
-@Indexed(unique = true)
+private String id  ;
 private String name ; 
-@NonNull
 private String description ;  
 private BigDecimal price  ;
 private String category  ;
